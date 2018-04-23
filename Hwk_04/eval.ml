@@ -1,0 +1,197 @@
+type expr 
+  = Add of expr * expr
+  | Sub of expr * expr
+  | Mul of expr * expr
+  | Div of expr * expr
+  
+  | Lt of expr * expr
+  | Eq of expr * expr
+  | And of expr * expr
+
+  | If of expr * expr * expr
+
+  | Id of string
+  
+  | Let of string * expr * expr
+  | LetRec of string * expr * expr
+
+  | App of expr * expr
+  | Lambda of string * expr
+
+  | Value of value
+
+and value 
+  = Int of int
+  | Bool of bool
+  | Closure of string * expr * environment 
+  | Ref  of value ref
+  and environment  = (string *value) list
+  (* You may need an extra constructor for this type. *)
+
+
+
+let rec lookup (n:string) (env:environment) : value =
+  match env with
+  | [] -> raise (Failure ("Identifier " ^ n ^ " is not in scope."))
+  | (x,value)::rest when x = n -> value
+  | _::rest -> lookup n rest
+
+
+
+
+
+let evaluate (e:expr) : value =
+	let rec eval (env:environment) (e:expr) : value =
+  match e with
+  | Value v -> v 
+  | Add (e1, e2) -> 
+     ( match eval env e1, eval env e2 with
+       | Int i1, Int i2 -> Int (i1 + i2) 
+       | _ -> raise (Failure "Incompatible types on Add")
+     )
+  | Sub (e1, e2) -> 
+     ( match eval env e1, eval env e2 with
+       | Int i1, Int i2 -> Int (i1 - i2) 
+       | _ -> raise (Failure "Incompatible types on Sub")
+     )
+     
+   | Mul (e1, e2) -> 
+     ( match eval env e1, eval env e2 with
+       | Int i1, Int i2 -> Int (i1 * i2) 
+       | _ -> raise (Failure "Incompatible types on Mul")
+     )
+     
+   | Div (e1, e2) -> 
+     ( match eval env e1, eval env e2 with
+       | Int i1, Int i2 -> Int (i1 / i2) 
+       | _ -> raise (Failure "Incompatible types on Div")
+     )
+     
+  | Lt (e1, e2) -> 
+     ( match eval env e1, eval env e2 with
+       | Int i1, Int i2 -> Bool (i1 < i2) 
+       | _ -> raise (Failure "Incompatible types on Lt")
+     )
+	
+	
+  | Eq (e1, e2) -> 
+     ( match eval env e1, eval env e2 with
+       | Int i1, Int i2 -> if i1 =i2 then Bool(true) else Bool(false )
+       | _ -> raise (Failure "Incompatible types on Eq")
+     )
+  
+  
+  | And (e1, e2) -> 
+     ( match eval env e1, eval env e2 with
+       | Bool i1, Bool i2 -> Bool(i1 && i2)
+       | _ -> raise (Failure "Incompatible types on And")
+     )
+     
+  | If (cond, v1, v2) ->
+	(match eval env cond with 
+	   | Bool(result) -> if result then eval env v1 else eval env v2
+	   |_ -> raise (Failure "Incompatible types on If " )
+	)
+
+   | Let (n, dexpr, body) -> 
+     let dexpr_v = eval env dexpr in
+     let body_v = eval ((n,dexpr_v)::env) body in
+     body_v
+     
+     
+     
+   
+     
+   |Id n -> lookup n env
+   
+   
+   |Lambda (str, ex) -> Closure(str, ex,env)
+	
+	
+| App (exp1,exp2) -> 
+      (match (eval env exp1) , (eval env exp2) with
+      |Closure(str,expr,l), Int exp2 -> eval ((str,Int exp2) :: l) expr
+      |Ref clo, Int valuex -> 
+        (match !clo with
+            |Closure(str,expr,l) -> eval ((str,Int valuex) :: l) expr
+            |_ -> raise (Failure "Incompatible types on App")
+        )
+      |_ -> raise (Failure "Incompatible types on App"))
+	
+	
+	| LetRec (str, body, dexpr ) -> (match body with
+        | Lambda (strLam, body) -> let recRef = ref (Int 99) in
+                    let c =
+                            Closure (strLam,
+                                          body,
+                                  [ (str, Ref recRef) ]) in
+                    let () = recRef := c in
+                        eval ((str,c)::env) dexpr
+        | _ -> raise (Failure "Incompatible types on LetRec"))	
+	
+    in eval [] e 
+    
+  
+
+
+
+
+
+
+
+
+
+
+
+
+(* Some sample expressions *)
+
+let inc = Lambda ("n", Add(Id "n", Value (Int 1)))
+
+let add = Lambda ("x",
+                  Lambda ("y", Add (Id "x", Id "y"))
+                 )
+
+(* The 'sumToN' function *)
+let sumToN_expr : expr =
+    LetRec ("sumToN", 
+            Lambda ("n", 
+                    If (Eq (Id "n", Value (Int 0)),
+                        Value (Int 0),
+                        Add (Id "n", 
+                             App (Id "sumToN", 
+                                  Sub (Id "n", Value (Int 1))
+                                 )
+                            )
+                       )
+                   ),
+            Id "sumToN"
+           )
+
+
+
+
+(*let twenty_one : value = evaluate (App (sumToN_expr, Value (Int 6)));*)
+
+let rec freevars e =
+match e with 
+|Value v -> []
+|Add (e1,e2) -> freevars e1 @ freevars e2
+|Mul (e1,e2) -> freevars e1 @ freevars e2
+|Sub (e1,e2) -> freevars e1 @ freevars e2
+|Div (e1,e2) -> freevars e1 @ freevars e2
+|Eq (e1,e2) -> freevars e1 @ freevars e2
+|Lt (e1,e2) -> freevars e1 @ freevars e2
+|And (e1,e2) -> freevars e1 @ freevars e2
+|If (e1,e2,e3) -> freevars e1 @ freevars e2 @ freevars e3
+|App (f , a )-> freevars f @ freevars a
+|Lambda ( i , body ) ->
+	List.filter
+		(fun fv -> fv <> i) (freevars body)
+|Id i -> [i]
+|Let ( i, dexpr , body) ->
+	freevars dexpr @ List.filter (fun fv -> fv <> i) (freevars body)
+
+|LetRec(i, dexpr, body) ->  List.filter (fun fv -> fv<> i) (freevars body)
+
+

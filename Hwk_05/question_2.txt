@@ -1,0 +1,80 @@
+foldr f [] v = v
+foldr f (x::xs) v = f x (foldr f xs v)
+
+foldl f v [] = v
+foldl f v (x::xs) = foldl f (f v x) xs
+
+and b1 b2 = if b1 then b2 else false
+
+andl l = foldl and true l
+andr l = foldr and l true
+
+*************************Call_By_value*******************************************
+1. andl (t::f::t::t::[])		
+=foldl and true (t::f::t::t::[] )		use df of andl		
+=foldl and (and true t) (f::t::t::[])		use df of foldl
+=foldl and (true) (f::t::t::[])			use df of and 
+=foldl and (and true f) (t::t::[])		use df of foldl
+=foldl and (flase) (t::t::[])			use df of and 
+=foldl and (and false t) (t::[])		use df of foldl	
+=foldl and (false) (t::[])			use of and 	
+=foldl and (and false t) ([])			use df of foldl
+=foldl and false []				use df of and
+=false						use df of foldl
+
+
+
+2. andr (t::f::t::t::[]) 		
+=foldr and (t::f::t::t::[]) true			use df of andr
+=and t (foldr and (f::t::t::[]) true)			use df of foldr
+= and t (and f (foldr and (t::t::[]) true)		use df of foldr
+=and t(and f (and t (foldr and (t::[]) true)) 		use df of foldr
+=and t(and f (and t (and t (foldr and [] true)))	use df of foldr
+=and t(and f (and t (and t true)))			use df of and
+=and t(and f (and t t))					use df of and
+=and t(and f t)						use df of and
+=and t f						use df of and
+=false							use df of and
+
+
+
+
+
+****************************Call_By_Name***************************************************
+1. andl (t::f::t::t::[])
+=foldl and true (t::f::t::t::[])				use df of andl
+=foldl and (and t t) (f::t::t::[])				use df of foldl
+=foldl and (and (and t t) f) (t::t::[])				use df of foldl
+=foldl and (and ((and (and t t) f))t) (t::[])			use df of foldl
+=foldl and (and (((and(and (and t t) f) t))) t) ([])		use df of foldl
+=and (((and(and (and t t) f) t))) t				use df of foldl   	
+=and ((and(and t f) t))	t					use df of and
+=and (and f t) t						use df of and 
+=and f t							use df of and 
+=false								use df of and .
+
+
+
+
+2. andr (t::f::t::t::[])
+=foldr and (t::f::t::t::[]) true				use df of andr
+=and t (foldr and (f::t::t::[]) true )				use df of foldr
+=foldr and (f::t::t::[]) true)					use df of and
+=and f (foldr and (t::t::[]) true)				use df of foldr
+=false								use df of and				
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

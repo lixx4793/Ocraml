@@ -1,0 +1,247 @@
+				----Question 1----
+			Power function. over natural numbers
+let rec power n x =
+match n with
+|0 ->1.0
+|_-> x*. power (n-1) x
+
+BaseCase:
+power n x = x^n  when n =0:
+power 0 x = 1.0					Defenition of power
+1.0 = x^0					Property of natural number
+power 0 x = x^0					summary of information above
+
+InductiveCase:
+Show: power k+1 x = x^(k+1)
+Given power k x = x^k
+
+power k+1 x =
+x * power k x=					Defenition of power
+x * x^k=					By inductive hypothesis
+x^(k+1)						Property of natural number 
+power k+1 x = x^ (k+1)				Summary of information above						
+
+				---Question 2---
+			 Power over structured numbers
+
+let nat = Zero | Succ of nat
+let to Int = function
+|Zero -> 0
+|Succ n -> toInt n+1
+
+let rec power n x = match n with 
+| Zero -> 0
+| Succ n' x*. power n' x
+
+(1)for all n, P(n) is P(zero) and P(n) =>P(Succ n )
+(2)
+Base case:
+P(Zero): power Zero x = 1 			//Definition of power
+=x^0						//Property of natural number
+=x^toInt(Zero)					//Property of toInt
+
+
+Inductive case
+indcution gypothesis: power n' x = x^toInt(n')
+proof power Succ(n') x = x^toInt(Succ(n'))
+P(Succ n'):
+power Succ(n') x 
+=x *. power n' x 				//Definition of power
+=x *. x^toint(n')				//Inductive hypothesis
+=x^toInt(n')+1					//property of mutiply
+=x^toInt(Succ(n'))				//Definition of toInt
+so p([]) && P(n') => P(Succ(n'))
+
+
+				---Question 3---
+				  Length of lists
+let rec length = function 
+| [] -> 0
+| x: xs -> 1 +length xs
+
+(1)
+	for all list l, p(l), ifP([]) and P(xs) =>P(x::xs)
+
+(2)
+BaseCase:
+length ( l @ r) when l=[]
+length ([] @ r) = length(r)			Property of append and list
+=0 + length(r)					Property of sum
+=length[] + length(r)				Defenition of length
+length([] @ r) = length[] + length(r)		Summary of information above
+
+
+InductiveCase:
+show: length((t::h) @ r) = length(t::h) + length(r)
+given: length(h @ r) = length(h) + length(r)
+
+length((t::h)@r) = length(h::(t@r))		Property of append and list
+=1+length(h@r)					Defenition of length
+=1+length(h) + length(r)			by Inductive hypothesis
+=length(t::h) + length(r)			Defenition of length
+
+
+
+
+				---Question 4---
+			      List length and reverse
+
+let rec reverse l = match l with 
+| [] -> []
+| x::xs -> reverse xs @ [x]
+Proof: length (reverse l) = length l
+
+BaseCase:
+length(reverse(l)) when l =[]
+length (reverse []) = length ([])		Defenition of reverse
+
+
+InductiveCase:
+show: length ( reverse(t::h)) = length(t::h)
+given: length(reverse(h)) = length(h)	
+
+length(reverse(t::h)) =length(reverse(h)@[t])	Defenition of reverse
+=length(t::reverse(h))				Property of append and list
+=1+length(reverse(h))				Defenition of length
+=1+length(h)					By inductive hypothesis
+=length(t::h)					Definition of length
+length(reverse(t::h)) = length(t::h)		Summary of information above
+
+
+
+				---Question 5---
+			     List reverse and append
+
+let rec append l1 l2 = match l1 with
+|[] -> l2
+| (h::t) -> h :: (append t l2)
+
+
+	Subproof:
+		append (l []) = append ([] l)
+	Basecase:
+		when l =[]
+		append([] [] ) = []		//Definintion of append
+		=append([] l)			//Definition of append
+		append(l []) = append ([] l)	//Summray of information
+
+	Inductive case:
+		show: append(h::l []) = append([] (h::l))
+		given:appen(l [] ) = append ([] l)
+
+		append (h::l []) = h:: (append (l []))	//Defininton of append
+		=h :: append([] l)				//By hypothesis 
+		=h:: l						//Definition of append 
+		=append ([] (h:: l))
+		so append([] l ) = append (l [])
+
+
+
+Proof: reverse (append l1 l2) = append (reverse l2) (reverse l1)
+
+BaseCase:
+	reverse (append l1 l2) when l1 = []		
+	reverse (append [] l2) = reverse(l2)		//Definiton of append
+	=append ([] (reverse l2))			//Definition of append
+	=append (reversel2 [])				//By previous proof 
+	=append (reversel2) (reversel1)			//Substitution from [] to reverse l1
+
+
+
+
+InductiveCase:
+
+Show:reverse (append (h::l1) l2) = append (reverse l2) (reverse h::l1)
+Given: reverse(append l1 l2 ) = append  (reverse l2 ) (reverse l1)
+
+
+reverse (append(h::l1) l2) = reverse(h::(append(l1 l2)))	//Definition of append 
+= reverse (append (l1 l2)) @ [h]				//Definition of reverse
+=append (reverse l2) (reverse l1) @ [h]				//By inductive hypothesis
+=append (reverse l2) (reverse l1 @ [h])				//Associated Told by TA
+=append (reverse l2) (reverse h::l1)				//Definition of reverse
+
+so p([]) && P(l1) => P(h::l1) proof is ture
+
+
+
+
+
+				------Question 6-------
+Proof: sorted l => sorted (place e l)
+BaseCase:
+when l = []
+sorted [] = sorted [e]					//Definition of sorted 
+=sorted (place e [])					//Definiton of place	
+=sorted(place e l)					//substitute back [] to l
+so when sorted l is true (sorted (place e l)) is also true
+when false also false (not matter since false), thereforce, sorted [] => sorted (place e [])	
+
+
+InductiveCase:
+show sorted(x1::x2::xs) => sorted(place e (x1::x2::x3))
+given sorted( l ) => sorted (place e l)
+
+premise:
+sorted(x1::x2::x3) =
+x1 <=x2 && sorted(x2::xs)				//Definition of sorted
+if x1>x2	
+	=false && sorted(x2::xs)			//Property of &&
+	=false
+else if x1<=x2
+	=true && sorted(x2::xs)				
+	=sorted(x2 :: xs)				//result depend on xs
+-----------
+
+sorted(place e (x1::x2::x3))
+=sorted(place  e (x1 :: (x2::x3))			//Propert of list
+if e <x1
+	=sorted(e::x1::(x2::x3))
+	= e<=x1 && sorted(x1::(x2::x3))
+	= true && sorted(x1::x2::x3)			//Property of list
+	so sorted(place e (x1::x2::x3)) always true 
+	because when sorted(place e (x1::x2::x3)) = true
+	true && true =true				//Property of &&
+
+
+if e>x1
+	=sorted(x1:: place(e x2::x3))
+	if e< x2
+		=sorted(x1:: e :: x2:: x3)		//Definition of place
+		= x1<=e && sorted(e::x2::x3)		//Definition of sorted
+		=true && sorted(e ::x2::x3)		
+		=true && true				//inductive hyothesis
+	if e>=x2
+		x1>x2 sorted(x1::x2::x3) =flase and the statment is always true
+
+
+
+				-----Question 7---------
+1.Since is_elem e (place e l) will run the place e l function first, and find a right position for e, which e is smaller than the 
+element after and bigger than the element before it. the sequence of x1::e::x2 is sorted. Function is_elem e l also will default the 
+list as sequence when it find the index of e
+
+2.the premise for sorted is neccessary since the true value of sorted l => sorted (place e l ) will always be true if sorted l is false
+so we dont need to consider the situation when sorted l is false
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
++

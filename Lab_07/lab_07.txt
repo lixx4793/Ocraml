@@ -1,0 +1,30 @@
+1.for t equal to [] or not equaol to [], e is the element if insert e in t.
+
+2.is_elem e (insert e t) is true
+
+3.when t = []
+when t = []
+is elem e *insert e Empty)
+=is_elem e (Branch(Empty,e , Empty))	
+=true by definition of is_ele
+
+
+
+4.is_elem (insert e (Branch (lt, v,rt))
+when e=v 
+	is_elem e (Branch (lt, e ,rt))
+	true by definition of is_elem 
+
+when e<v:
+	is_elem e (Branch (insert e lt, v ,rt))
+	true by inductive hypothesis 
+
+when e>v:
+	is_elem e (Branch (lt, e ,insert e rt))
+	is_elem e rt
+	true by inductive hypothesis
+
+
+5.is elem e (insert e lt)
+ is elem e (insert e rt)
+
